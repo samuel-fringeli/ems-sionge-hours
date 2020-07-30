@@ -1,0 +1,172 @@
+{
+  "resource": "/workdays",
+  "path": "/workdays",
+  "httpMethod": "DELETE",
+  "headers": {
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Authorization": "eyJraWQiOiJrUlFDVDFLbStnU3lQNWMyTDU1WmtqdVYyMUY0SEZSYXdLdzhObWo4VDZjPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJiOGY5YWJkMS00MWNjLTQ3MjktOWYwMi0wYWY0MTg2ZjZmOGMiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImN1c3RvbTpmaXJzdG5hbWUiOiJTYW11ZWwiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuZXUtY2VudHJhbC0xLmFtYXpvbmF3cy5jb21cL2V1LWNlbnRyYWwtMV9lR3hPWVRqSlQiLCJjb2duaXRvOnVzZXJuYW1lIjoiYjhmOWFiZDEtNDFjYy00NzI5LTlmMDItMGFmNDE4NmY2ZjhjIiwiYXVkIjoiNm9lOXM4bnBraTdjMW0xbGRxZzNqdGQ5dDgiLCJldmVudF9pZCI6ImJkZmNkYWNjLWI2MDAtNGIzMS04MWI2LTEzYTU0NDUzNzViYSIsInRva2VuX3VzZSI6ImlkIiwiYXV0aF90aW1lIjoxNTkzNzY1NjkxLCJjdXN0b206bGFzdG5hbWUiOiJGcmluZ2VsaSIsImV4cCI6MTU5NDYzNzkyMywiaWF0IjoxNTk0NjM0MzIzLCJlbWFpbCI6InNhbXVlbC5mcmluZ2VsaUBtZS5jb20ifQ.cIZVX4dLjdmom_r7KgErfCfBwX34SjeSz_fTvPO5d-AFzpYAG2_p3k6oZT-A5J6oFhtMKVoJLSqqM9fKixy_1QDHJ5gg5kT-HLAZuDyylzJTFgwJyGyKcM1TT2i3_moon30TOllQKbYpGY-DttOTZMgUVcMBa2SYMG4VBJmC7UX-yY0EfXIQhOJe828Zu-y6h-m8KdRceBgYTorpaemD8pt5AKcajensworCLO_G2VeHMIcOJao4ipjEuF-hKqr1hsK2tmNv8x4tc-zX7Y7XlTygb-mo4COI7DxYAfInNxYIVFnXVyDuiVBxSoZf8Wb33g7FN0XhcPamxnpOD3kWcA",
+    "cache-control": "no-cache",
+    "CloudFront-Forwarded-Proto": "https",
+    "CloudFront-Is-Desktop-Viewer": "true",
+    "CloudFront-Is-Mobile-Viewer": "false",
+    "CloudFront-Is-SmartTV-Viewer": "false",
+    "CloudFront-Is-Tablet-Viewer": "false",
+    "CloudFront-Viewer-Country": "CH",
+    "content-type": "application/json;charset=UTF-8",
+    "Host": "e05i7bn7o9.execute-api.eu-central-1.amazonaws.com",
+    "origin": "http://localhost:3002",
+    "pragma": "no-cache",
+    "Referer": "http://localhost:3002/questions?id=first-form-id",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "cross-site",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
+    "Via": "2.0 479d15a99f4dd073131fba1516541469.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Id": "sBi6nJVQddpi6CpYeKhx1zwtDAGbfR3DjCYqKgAgHL9bP_zc70Hb_A==",
+    "X-Amzn-Trace-Id": "Root=1-5f0c3086-0d86977d10453e731a31cccc",
+    "X-Forwarded-For": "81.62.156.166, 70.132.1.84",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "multiValueHeaders": {
+    "Accept": [
+      "application/json, text/plain, */*"
+    ],
+    "Accept-Encoding": [
+      "gzip, deflate, br"
+    ],
+    "Accept-Language": [
+      "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7"
+    ],
+    "Authorization": [
+      "eyJraWQiOiJrUlFDVDFLbStnU3lQNWMyTDU1WmtqdVYyMUY0SEZSYXdLdzhObWo4VDZjPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJiOGY5YWJkMS00MWNjLTQ3MjktOWYwMi0wYWY0MTg2ZjZmOGMiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImN1c3RvbTpmaXJzdG5hbWUiOiJTYW11ZWwiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuZXUtY2VudHJhbC0xLmFtYXpvbmF3cy5jb21cL2V1LWNlbnRyYWwtMV9lR3hPWVRqSlQiLCJjb2duaXRvOnVzZXJuYW1lIjoiYjhmOWFiZDEtNDFjYy00NzI5LTlmMDItMGFmNDE4NmY2ZjhjIiwiYXVkIjoiNm9lOXM4bnBraTdjMW0xbGRxZzNqdGQ5dDgiLCJldmVudF9pZCI6ImJkZmNkYWNjLWI2MDAtNGIzMS04MWI2LTEzYTU0NDUzNzViYSIsInRva2VuX3VzZSI6ImlkIiwiYXV0aF90aW1lIjoxNTkzNzY1NjkxLCJjdXN0b206bGFzdG5hbWUiOiJGcmluZ2VsaSIsImV4cCI6MTU5NDYzNzkyMywiaWF0IjoxNTk0NjM0MzIzLCJlbWFpbCI6InNhbXVlbC5mcmluZ2VsaUBtZS5jb20ifQ.cIZVX4dLjdmom_r7KgErfCfBwX34SjeSz_fTvPO5d-AFzpYAG2_p3k6oZT-A5J6oFhtMKVoJLSqqM9fKixy_1QDHJ5gg5kT-HLAZuDyylzJTFgwJyGyKcM1TT2i3_moon30TOllQKbYpGY-DttOTZMgUVcMBa2SYMG4VBJmC7UX-yY0EfXIQhOJe828Zu-y6h-m8KdRceBgYTorpaemD8pt5AKcajensworCLO_G2VeHMIcOJao4ipjEuF-hKqr1hsK2tmNv8x4tc-zX7Y7XlTygb-mo4COI7DxYAfInNxYIVFnXVyDuiVBxSoZf8Wb33g7FN0XhcPamxnpOD3kWcA"
+    ],
+    "cache-control": [
+      "no-cache"
+    ],
+    "CloudFront-Forwarded-Proto": [
+      "https"
+    ],
+    "CloudFront-Is-Desktop-Viewer": [
+      "true"
+    ],
+    "CloudFront-Is-Mobile-Viewer": [
+      "false"
+    ],
+    "CloudFront-Is-SmartTV-Viewer": [
+      "false"
+    ],
+    "CloudFront-Is-Tablet-Viewer": [
+      "false"
+    ],
+    "CloudFront-Viewer-Country": [
+      "CH"
+    ],
+    "content-type": [
+      "application/json;charset=UTF-8"
+    ],
+    "Host": [
+      "e05i7bn7o9.execute-api.eu-central-1.amazonaws.com"
+    ],
+    "origin": [
+      "http://localhost:3002"
+    ],
+    "pragma": [
+      "no-cache"
+    ],
+    "Referer": [
+      "http://localhost:3002/questions?id=first-form-id"
+    ],
+    "sec-fetch-dest": [
+      "empty"
+    ],
+    "sec-fetch-mode": [
+      "cors"
+    ],
+    "sec-fetch-site": [
+      "cross-site"
+    ],
+    "User-Agent": [
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36"
+    ],
+    "Via": [
+      "2.0 479d15a99f4dd073131fba1516541469.cloudfront.net (CloudFront)"
+    ],
+    "X-Amz-Cf-Id": [
+      "sBi6nJVQddpi6CpYeKhx1zwtDAGbfR3DjCYqKgAgHL9bP_zc70Hb_A=="
+    ],
+    "X-Amzn-Trace-Id": [
+      "Root=1-5f0c3086-0d86977d10453e731a31cccc"
+    ],
+    "X-Forwarded-For": [
+      "81.62.156.166, 70.132.1.84"
+    ],
+    "X-Forwarded-Port": [
+      "443"
+    ],
+    "X-Forwarded-Proto": [
+      "https"
+    ]
+  },
+  "queryStringParameters": {
+    "id": "first-form-id"
+  },
+  "multiValueQueryStringParameters": {
+    "action": [
+      "first-form-id"
+    ]
+  },
+  "pathParameters": null,
+  "stageVariables": null,
+  "requestContext": {
+    "resourceId": "ztklmn",
+    "authorizer": {
+      "claims": {
+        "sub": "b8f9abd1-41cc-4729-9f02-0af4186f6f8c",
+        "email_verified": "false",
+        "custom:firstname": "Samuel",
+        "iss": "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_eGxOYTjJT",
+        "cognito:username": "b8f9abd1-41cc-4729-9f02-0af4186f6f8c",
+        "aud": "6oe9s8npki7c1m1ldqg3jtd9t8",
+        "event_id": "bdfcdacc-b600-4b31-81b6-13a5445375ba",
+        "token_use": "id",
+        "auth_time": "1593765691",
+        "custom:lastname": "Fringeli",
+        "exp": "Mon Jul 13 10:58:43 UTC 2020",
+        "iat": "Mon Jul 13 09:58:43 UTC 2020",
+        "email": "samuel.fringeli@me.com"
+      }
+    },
+    "resourcePath": "/questions",
+    "httpMethod": "POST",
+    "extendedRequestId": "PmyFGHQOFiAFtPA=",
+    "requestTime": "13/Jul/2020:09:59:34 +0000",
+    "path": "/prod/questions",
+    "accountId": "982616365178",
+    "protocol": "HTTP/1.1",
+    "stage": "prod",
+    "domainPrefix": "e05i7bn7o9",
+    "requestTimeEpoch": 1594634374937,
+    "requestId": "cfb456ca-20f0-47c7-97bd-6db0e66ccdde",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "sourceIp": "81.62.156.166",
+      "principalOrgId": null,
+      "accessKey": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
+      "user": null
+    },
+    "domainName": "e05i7bn7o9.execute-api.eu-central-1.amazonaws.com",
+    "apiId": "e05i7bn7o9"
+  },
+  "body": "{\"id\":\"c02b8d02-bce8-4204-aac1-15c6daf23ffe\",\"formId\":\"first-form-id\",\"question\":\"my fourth question\",\"questionNumber\":4}",
+  "isBase64Encoded": false
+}

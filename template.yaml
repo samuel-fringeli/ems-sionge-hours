@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ems-sionge-hours
+
+  Compteur d'heures pour les cadres de l'EMS de la Sionge - API backend
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  EMSSiongeHoursAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: EMSSiongeHoursAPI
+      StageName: prod
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+        AllowOrigin: "'*'"
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: "arn:aws:cognito-idp:eu-central-1:982616365178:userpool/eu-central-1_eGxOYTjJT"
+
+  WorkdaysTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: cognitoUser
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: cognitoUser
+          AttributeType: S
+      GlobalSecondaryIndexes:
+        - IndexName: workdays-user-index
+          KeySchema:
+            - AttributeName: cognitoUser
+              KeyType: HASH
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - workTime
+      BillingMode: PAY_PER_REQUEST
+
+  ManageWorkdaysFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Manages workdays
+      CodeUri: main-api/
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Runtime: nodejs12.x
+      Handler: app.manageWorkdays
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref WorkdaysTable
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            Path: /workdays
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+        Post:
+          Type: Api
+          Properties:
+            Path: /workdays
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        Put:
+          Type: Api
+          Properties:
+            Path: /workdays
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
+        Delete:
+          Type: Api
+          Properties:
+            Path: /workdays
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  ManageDayFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Manages a day
+      CodeUri: main-api/
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Runtime: nodejs12.x
+      Handler: app.manageDay
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref WorkdaysTable
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            Path: /day
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+        Post:
+          Type: Api
+          Properties:
+            Path: /day
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        Put:
+          Type: Api
+          Properties:
+            Path: /day
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
+        Delete:
+          Type: Api
+          Properties:
+            Path: /day
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer

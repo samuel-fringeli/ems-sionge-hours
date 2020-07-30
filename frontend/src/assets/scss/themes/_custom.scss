@@ -1,0 +1,46 @@
+.pcoded-main-container {
+  margin-left: 0;
+}
+
+#main-logo {
+  height: 50px !important;
+}
+
+#mobile-collapse1, #styleSelector {
+  display: none;
+}
+
+.icon-card-expand {
+  position: relative !important;
+  top: 13px !important;
+}
+
+.cursor-with-pointer {
+  cursor: pointer;
+}
+
+.table-with-cursor-pointer tr {
+  cursor: pointer;
+}
+
+.swal2-container {
+  z-index: 2000;
+}
+
+.actionsHtml .btn, .actionsNumber .btn {
+  margin-top: -13px;
+  margin-bottom: -10px;
+  border-radius: 50%;
+}
+
+.btn-edit-question, .btn-remove-question {
+  cursor: pointer;
+}
+
+.highcharts-credits {
+  display: none;
+}
+
+.ui-pnotify-title {
+  margin-bottom: 0 !important;
+}
