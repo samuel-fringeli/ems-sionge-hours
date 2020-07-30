@@ -81,6 +81,7 @@ class DataTables extends React.Component {
             pageLoaded: false,
             showAddModal: false,
             showEditModal: false,
+            dayWorkTime: '00:00',
             currentData: {
                 begin: window.moment(),
                 end: window.moment(),
@@ -121,7 +122,7 @@ class DataTables extends React.Component {
         this.calculateHoursDone();
         $('#data-table-responsive').DataTable().row.add(window.CURRENT_DAY[window.CURRENT_DAY.length - 1]).draw();
         this.registerActions();
-        this.setState({ showAddModal: false });
+        this.setState({ showAddModal: false, dayWorkTime: this.getDayWorkTime() });
         utils.postData('/day', 'add')({
             ...newForm, dayId: this.state.dayId
         }).then(({ data }) => {
@@ -141,7 +142,7 @@ class DataTables extends React.Component {
 
         let row = this.table.row($('#edit-' + window.CURRENT_DAY[newDataIndex].id).parents('tr'));
         row.data(window.CURRENT_DAY[newDataIndex]).draw();
-        this.setState({ showEditModal: false });
+        this.setState({ showEditModal: false, dayWorkTime: this.getDayWorkTime() });
         this.registerActions();
 
         utils.postData('/day', 'editDayContent')({
@@ -184,6 +185,7 @@ class DataTables extends React.Component {
                 let row = context.table.row($(this).parents('tr'));
                 row.remove().draw();
                 window.CURRENT_DAY.splice(rowIdx, 1);
+                context.setState({ dayWorkTime: context.getDayWorkTime() });
                 utils.deleteData('/day')(currentId, context.state.dayId).then(({ data }) => {
                     if ('error' in data.dbData) {
                         alert('An unexpected error occured');
@@ -195,13 +197,12 @@ class DataTables extends React.Component {
         });
     };
 
-    getHoursDone(item) {
-        let begin = moment(item.begin, 'HH:mm');
-        let end = moment(item.end, 'HH:mm');
-        if (begin.format() === "Invalid date" || end.format() === "Invalid date") {
-            return '00:00';
+    getDayWorkTime() {
+        this.calculateHoursDone();
+        let diff = 0;
+        if (window.CURRENT_DAY.length > 0) {
+            diff = window.CURRENT_DAY.map(item => item.minDone).reduce((a, b) => a + b);
         }
-        let diff = begin.diff(end, 'minutes');
         let minutes = diff % 60;
         let hours = (diff - minutes) / 60;
         minutes = Math.abs(minutes);
@@ -211,12 +212,31 @@ class DataTables extends React.Component {
         return hoursStr + ':' + minutesStr;
     }
 
+    getHoursDone(item) {
+        let begin = moment(item.begin, 'HH:mm');
+        let end = moment(item.end, 'HH:mm');
+        if (begin.format() === "Invalid date" || end.format() === "Invalid date") {
+            return { hoursDone: '00:00', minDone: 0 };
+        }
+        let diff = begin.diff(end, 'minutes');
+        let minutes = diff % 60;
+        let hours = (diff - minutes) / 60;
+        minutes = Math.abs(minutes);
+        hours = Math.abs(hours);
+        let hoursStr = ('0' + hours).slice(-2);
+        let minutesStr = ('0' + minutes).slice(-2);
+        return {
+            hoursDone: hoursStr + ':' + minutesStr,
+            minDone: Math.abs(diff)
+        };
+    }
+
     calculateHoursDone() {
         window.CURRENT_DAY = window.CURRENT_DAY
             .filter(item => !('disabled' in item && item.disabled === 'true'))
             .map(item => ({
                 ...item,
-                hoursDone: this.getHoursDone(item)
+                ...this.getHoursDone(item),
             })
         );
     }
@@ -244,12 +264,11 @@ class DataTables extends React.Component {
             }
         }
 
-        await new Promise(resolve => this.setState({ pageLoaded: true }, resolve));
+        await new Promise(resolve => this.setState({ pageLoaded: true, dayWorkTime: this.getDayWorkTime() }, resolve));
 
         $.fn.dataTable.moment('MMMM Do YYYY, hh:mm');
 
         this.calculateHoursDone();
-
         this.table = $('#data-table-responsive').DataTable( {
             data: window.CURRENT_DAY,
             order: [[ 0, "asc" ]],
@@ -276,11 +295,34 @@ class DataTables extends React.Component {
         this.registerActions();
     }
 
-    isSaveDisabled = () =>
+    isSaveDisabled = () => {
+        let { begin, end, reason } = this.state.currentData;
+
+        if (begin._isAMomentObject && begin._i === '') begin = '';
+        if (end._isAMomentObject && end._i === '') end = '';
+
+        if (begin === '' && end === '' && reason === '') return true;
+
+        if (begin._isAMomentObject && begin.format() === 'Invalid date') return true;
+        if (end._isAMomentObject && end.format() === 'Invalid date') return true;
+
+        if (!begin._isAMomentObject && begin !== '') return true;
+        if (!end._isAMomentObject && end !== '') return true;
+
+        if (begin._isAMomentObject && end._isAMomentObject) {
+            if (begin.diff(end, 'minutes') > 0) return true;
+        }
+
+        return false;
+    }; /*
         !(
             (!(
-                this.state.currentData.begin === ''
-                && this.state.currentData.end === ''
+                (this.state.currentData.begin === ''
+                    || (this.state.currentData.begin._isAMomentObject
+                        && this.state.currentData.format() === 'Invalid date'))
+                && (this.state.currentData.end === ''
+                    || (this.state.currentData.end._isAMomentObject
+                        && this.state.currentData.end.format() === 'Invalid date'))
                 && this.state.currentData.reason === ''
             )) && (
                 (this.state.currentData.begin === ''
@@ -289,13 +331,18 @@ class DataTables extends React.Component {
                     this.state.currentData.end === ''
                     || this.state.currentData.end._isAMomentObject
                 ) && (
-                    (this.state.currentData.begin === '' || this.state.currentData.end === '')
+                    (this.state.currentData.begin === ''
+                        || (this.state.currentData.begin._isAMomentObject
+                            && this.state.currentData.format() === 'Invalid date'))
+                    && (this.state.currentData.end === ''
+                        || (this.state.currentData.end._isAMomentObject
+                            && this.state.currentData.end.format() === 'Invalid date'))
                     || (
                         this.state.currentData.begin.diff(this.state.currentData.end) <= 0
                     )
                 )
             )
-        );
+        );*/
 
     componentDidMount() {
         this.componentDidMountAsync();
@@ -309,7 +356,7 @@ class DataTables extends React.Component {
             <Aux>
                 <Row>
                     <Col>
-                        <MainCard title="Jours de travail" path="/day" isOption parentContext={this}>
+                        <MainCard title={ utils.capitalizeFirstLetter(window.moment(this.state.dayId).format('dddd Do MMMM YYYY')) + ' (' + this.state.dayWorkTime + ' de travail)' } path="/day" isOption parentContext={this}>
                             <Modal centered show={this.state.showEditModal}
                                    onHide={() => this.setState({ showEditModal: false })}>
                                 <Modal.Header closeButton>
@@ -319,21 +366,60 @@ class DataTables extends React.Component {
                                     <Row>
                                         <Col xs="12" sm="6" className="mb-2">
                                             <Datetime dateFormat={false}
-                                                      defaultValue={this.state.currentData.begin._isAMomentObject ?
+                                                      value={this.state.currentData.begin._isAMomentObject ?
                                                           this.state.currentData.begin.format() === 'Invalid date' ?
-                                                              '':this.state.currentData.begin.format('HH:mm'):''}
+                                                              '':this.state.currentData.begin.format('HH:mm'):this.state.currentData.begin}
                                                       onChange={begin => this.setState({ currentData: {
                                                           ...this.state.currentData,
                                                           begin
                                                       }})}
-                                                      inputProps={{placeholder: 'Début'}} />
+                                                      inputProps={{placeholder: 'Début'}}
+                                                      className="datetime-input-edit-begin"
+                                                      renderInput={(props) =>
+                                                          <Row>
+                                                              <Col className="pr-0">
+                                                                  <input {...props} />
+                                                              </Col>
+                                                              <Col xs="auto" className="pl-0">
+                                                                  <Button variant="light" className="pl-2 pr-2 pt-2 pb-2 mt-1"
+                                                                          onClick={(event) => {
+                                                                              this.setState({ currentData: {
+                                                                                  ...this.state.currentData,
+                                                                                  begin: window.moment()
+                                                                              }})
+                                                                          }}>
+                                                                      <i className="feather icon-rotate-ccw"/>
+                                                                  </Button>
+                                                              </Col>
+                                                          </Row>
+                                                      }
+                                            />
                                         </Col>
                                         <Col xs="12" sm="6">
                                             <Datetime dateFormat={false}
-                                                      defaultValue={this.state.currentData.end._isAMomentObject ?
+                                                      value={this.state.currentData.end._isAMomentObject ?
                                                           this.state.currentData.end.format() === 'Invalid date' ?
-                                                              '':this.state.currentData.end.format('HH:mm'):''}
+                                                              '':this.state.currentData.end.format('HH:mm'):this.state.currentData.end}
                                                       inputProps={{placeholder: 'Fin'}}
+                                                      className="datetime-input-edit-end"
+                                                      renderInput={(props) =>
+                                                          <Row>
+                                                              <Col className="pr-0">
+                                                                  <input {...props} />
+                                                              </Col>
+                                                              <Col xs="auto" className="pl-0">
+                                                                  <Button variant="light" className="pl-2 pr-2 pt-2 pb-2 mt-1"
+                                                                          onClick={(event) => {
+                                                                              this.setState({ currentData: {
+                                                                                      ...this.state.currentData,
+                                                                                      end: window.moment()
+                                                                                  }})
+                                                                          }}>
+                                                                      <i className="feather icon-rotate-ccw"/>
+                                                                  </Button>
+                                                              </Col>
+                                                          </Row>
+                                                      }
                                                       onChange={end => this.setState({ currentData: {
                                                           ...this.state.currentData,
                                                           end
@@ -362,21 +448,59 @@ class DataTables extends React.Component {
                                     <Row>
                                         <Col xs="12" sm="6" className="mb-2">
                                             <Datetime dateFormat={false}
-                                                      defaultValue={this.state.currentData.begin._isAMomentObject ?
+                                                      value={this.state.currentData.begin._isAMomentObject ?
                                                           this.state.currentData.begin.format() === 'Invalid date' ?
-                                                              '':this.state.currentData.begin.format('HH:mm'):''}
+                                                              '':this.state.currentData.begin.format('HH:mm'):this.state.currentData.begin}
                                                       onChange={begin => this.setState({ currentData: {
                                                           ...this.state.currentData,
                                                           begin
                                                       }})}
+                                                      renderInput={(props) =>
+                                                          <Row>
+                                                              <Col className="pr-0">
+                                                                  <input {...props} />
+                                                              </Col>
+                                                              <Col xs="auto" className="pl-0">
+                                                                  <Button variant="light" className="pl-2 pr-2 pt-2 pb-2 mt-1"
+                                                                          onClick={(event) => {
+                                                                              this.setState({ currentData: {
+                                                                                      ...this.state.currentData,
+                                                                                      begin: window.moment()
+                                                                                  }})
+                                                                          }}>
+                                                                      <i className="feather icon-rotate-ccw"/>
+                                                                  </Button>
+                                                              </Col>
+                                                          </Row>
+                                                      }
+                                                      className="datetime-input-add-begin"
                                                       inputProps={{placeholder: 'Début'}} />
                                         </Col>
                                         <Col xs="12" sm="6">
                                             <Datetime dateFormat={false}
-                                                      defaultValue={this.state.currentData.end._isAMomentObject ?
+                                                      value={this.state.currentData.end._isAMomentObject ?
                                                           this.state.currentData.end.format() === 'Invalid date' ?
-                                                              '':this.state.currentData.end.format('HH:mm'):''}
+                                                              '':this.state.currentData.end.format('HH:mm'):this.state.currentData.end}
+                                                      className="datetime-input-add-end"
                                                       inputProps={{placeholder: 'Fin'}}
+                                                      renderInput={(props) =>
+                                                          <Row>
+                                                              <Col className="pr-0">
+                                                                  <input {...props} />
+                                                              </Col>
+                                                              <Col xs="auto" className="pl-0">
+                                                                  <Button variant="light" className="pl-2 pr-2 pt-2 pb-2 mt-1"
+                                                                          onClick={(event) => {
+                                                                              this.setState({ currentData: {
+                                                                                      ...this.state.currentData,
+                                                                                      end: window.moment()
+                                                                                  }})
+                                                                          }}>
+                                                                      <i className="feather icon-rotate-ccw"/>
+                                                                  </Button>
+                                                              </Col>
+                                                          </Row>
+                                                      }
                                                       onChange={end => this.setState({ currentData: {
                                                           ...this.state.currentData,
                                                           end
