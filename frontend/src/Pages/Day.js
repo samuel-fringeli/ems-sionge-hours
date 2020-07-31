@@ -172,9 +172,15 @@ class DataTables extends React.Component {
 
         editBtn.on('click', function() {
             let currentData = window.CURRENT_DAY.filter(item => item.id === this.id.split('edit-')[1])[0];
+            let begin = '';
+            let end = '';
+            if (window.moment(currentData.begin, 'HH:mm').format() !== 'Invalid date')
+                begin = window.moment(currentData.begin, 'HH:mm');
+            if (window.moment(currentData.end, 'HH:mm').format() !== 'Invalid date')
+                end = window.moment(currentData.end, 'HH:mm');
+
             context.setState({ showEditModal: true, currentData: {
-                begin: window.moment(currentData.begin, 'HH:mm'),
-                end: window.moment(currentData.end, 'HH:mm'),
+                begin, end,
                 reason: currentData.reason,
                 id: currentData.id
             }});
