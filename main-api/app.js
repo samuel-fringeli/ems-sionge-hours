@@ -2,9 +2,6 @@ let AWS = require("aws-sdk");
 AWS.config.update({
     region: 'eu-central-1'
 });
-const uuid = require('uuid/v4');
-const jsonxml = require('jsontoxml');
-const prettifyXml = require('prettify-xml');
 
 let dbClient = new AWS.DynamoDB();
 let docClient = new AWS.DynamoDB.DocumentClient();
@@ -67,12 +64,53 @@ function manage(relatedData, event) {
                     id: body.id,
                     cognitoUser: cognitoUser,
                     workTime: body.workTime,
-                    dayData: body.dayData
+                    dayData: [{
+                        id: 'data0',
+                        disabled: 'true'
+                    }],
                 }
             };
             docClient.put(params, (err, data) => {
                 if (err) resolve({ error: { err, params }});
                 else resolve({ success: params.Item });
+            });
+        });
+    }
+
+    function reCalculateHours(attributes) {
+        return new Promise(resolve => {
+            let dayData = attributes.dayData.L;
+            let totalMinutes = 0;
+            for (let i = 0; i < dayData.length; i++) {
+                let day = dayData[i];
+                if (day.M.disabled) continue;
+
+                let begin = day.M.begin.S;
+                let end = day.M.end.S;
+
+                if (begin === '' || end === '') continue;
+
+                let [hourBegin, minuteBegin] = begin.split(':').map(Number);
+                let [hourEnd, minuteEnd] = end.split(':').map(Number);
+
+                let diffHours = hourEnd - hourBegin;
+                let diffMinutes = minuteEnd - minuteBegin;
+
+                totalMinutes += ((diffHours * 60) + diffMinutes);
+            }
+
+            let params = {
+                TableName: process.env.TABLE_NAME,
+                Key: { id: { 'S': attributes.id.S }, cognitoUser: { 'S': attributes.cognitoUser.S } },
+                UpdateExpression: 'SET workTime = :w',
+                ExpressionAttributeValues: {':w': { "N": totalMinutes.toString() }},
+                ReturnValues: 'ALL_NEW'
+            };
+            dbClient.updateItem(params, async (err, data) => {
+                if (err) resolve({ error: { err, params }});
+                else {
+                    resolve({ success: data });
+                }
             });
         });
     }
@@ -99,11 +137,13 @@ function manage(relatedData, event) {
                             }
                         }
                     }},
-                ReturnValues: 'UPDATED_NEW'
+                ReturnValues: 'ALL_NEW'
             };
-            dbClient.updateItem(params, (err, data) => {
+            dbClient.updateItem(params, async (err, data) => {
                 if (err) resolve({ error: { err, params }});
-                else resolve({ success: data });
+                else {
+                    resolve(await reCalculateHours(data.Attributes));
+                }
             });
         });
     }
@@ -144,11 +184,13 @@ function manage(relatedData, event) {
                             }
                         }
                     }},
-                ReturnValues: 'UPDATED_NEW'
+                ReturnValues: 'ALL_NEW'
             };
-            dbClient.updateItem(params, (err, data) => {
+            dbClient.updateItem(params, async (err, data) => {
                 if (err) resolve({ error: { err, params }});
-                else resolve({ success: data });
+                else {
+                    resolve(await reCalculateHours(data.Attributes));
+                }
             });
         });
     }

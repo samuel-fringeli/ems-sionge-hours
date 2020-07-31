@@ -77,7 +77,7 @@ class ChangePassword extends React.Component {
                         });
                         this.setState({changingPassword: false});
                     } else {
-                        alert('An unexpected error occured');
+                        alert('Une erreur inconnue est survenue.');
                         console.log(err);
                         this.setState({changingPassword: false});
                     }

@@ -46,7 +46,7 @@ class SignIn2 extends React.Component {
                         });
                         this.props.history.push('/workdays');
                     } else {
-                        alert('An unexpected error occured');
+                        alert('Une erreur inconnue est survenue.');
                         this.setState({ signingIn: false });
                     }
                 });
@@ -75,7 +75,7 @@ class SignIn2 extends React.Component {
                     });
                     this.setState({ signingIn: false });
                 } else {
-                    alert('An unexpected error occured');
+                    alert('Une erreur inconnue est survenue.');
                     console.log(err);
                     this.setState({ signingIn: false });
                 }

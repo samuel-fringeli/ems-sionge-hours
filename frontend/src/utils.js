@@ -32,7 +32,7 @@ const getToken = () => new Promise((resolve, reject) => {
     Auth.currentAuthenticatedUser().then(user => {
         user.getSession((err, session) => {
             if (err) {
-                alert('an unexpected error occured');
+                alert('Une erreur inconnue est survenue.');
                 console.log(err);
             } else {
                 resolve(session.getIdToken().getJwtToken());
@@ -49,12 +49,12 @@ const getData = path => new Promise( resolve => {
             if (path.startsWith('/day')) {
                 resolve({}); // handled in component
             } else {
-                alert('An unexpected error occured');
+                alert('Une erreur inconnue est survenue.');
                 console.log(err);
             }
         });
     }).catch(err => {
-        alert('An unexpected error occured');
+        alert('Une erreur inconnue est survenue.');
         console.log(err);
     });
 });
@@ -64,11 +64,11 @@ const putData = path => data => new Promise(resolve => {
         axios.put(window.API_GATEWAY_ENDPOINT + path, data, {
             headers: { Authorization: token }
         }).then(resolve).catch(err => {
-            alert('An unexpected error occured');
+            alert('Une erreur inconnue est survenue.');
             console.log(err);
         });
     }).catch(err => {
-        alert('An unexpected error occured');
+        alert('Une erreur inconnue est survenue.');
         console.log(err);
     })
 });
@@ -78,11 +78,11 @@ const postData = (path, action) => data => new Promise(resolve => {
         axios.post(window.API_GATEWAY_ENDPOINT + path + '?action=' + action, data, {
             headers: { Authorization: token }
         }).then(resolve).catch(err => {
-            alert('An unexpected error occured');
+            alert('Une erreur inconnue est survenue.');
             console.log(err);
         });
     }).catch(err => {
-        alert('An unexpected error occured');
+        alert('Une erreur inconnue est survenue.');
         console.log(err);
     })
 });
@@ -92,11 +92,11 @@ const deleteData = path => (key, dayId) => new Promise(resolve => {
         axios.delete(window.API_GATEWAY_ENDPOINT + path + '?id=' + key +
             (path === '/day' ? ('&dayId=' + dayId) : ''), { headers: {Authorization: token }
         }).then(resolve).catch(err => {
-            alert('An unexpected error occured');
+            alert('Une erreur inconnue est survenue.');
             console.log(err);
         });
     }).catch(err => {
-        alert('An unexpected error occured');
+        alert('Une erreur inconnue est survenue.');
         console.log(err);
     })
 });

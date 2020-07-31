@@ -80,7 +80,7 @@ class ProfileSettings extends React.Component {
                         });
                         this.props.history.push('/workdays');
                     }).catch(err => {
-                        alert('An unexpected error occured');
+                        alert('Une erreur inconnue est survenue.');
                         console.log(err);
                         this.setState({ modifyingProfile: false });
                     });
@@ -90,7 +90,7 @@ class ProfileSettings extends React.Component {
                         this.verifyForm();
                         this.setState({ modifyingProfile: false });
                     } else {
-                        alert('An unexpected error occured');
+                        alert('Une erreur inconnue est survenue.');
                         console.log(err);
                         this.setState({ modifyingProfile: false });
                     }

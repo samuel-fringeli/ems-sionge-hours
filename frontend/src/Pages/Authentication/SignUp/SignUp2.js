@@ -98,12 +98,12 @@ class SignUp2 extends React.Component {
                                 });
                                 this.props.history.push('/workdays');
                             } else {
-                                alert('An unexpected error occured');
+                                alert('Une erreur inconnue est survenue.');
                                 this.setState({ signingUp: false });
                             }
                         });
                     }).catch(err => {
-                        alert('An unexpected error occured');
+                        alert('Une erreur inconnue est survenue.');
                         console.log(err);
                         this.setState({ signingUp: false });
                     });
@@ -113,7 +113,7 @@ class SignUp2 extends React.Component {
                         this.verifyForm();
                         this.setState({ signingUp: false });
                     } else {
-                        alert('An unexpected error occured');
+                        alert('Une erreur inconnue est survenue.');
                         console.log(err);
                         this.setState({ signingUp: false });
                     }

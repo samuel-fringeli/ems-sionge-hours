@@ -18,7 +18,7 @@ export default ['Workdays', 'Day'].map(item => ({
             try {
                 items = data.dbData.success.Items;
             } catch (e) {
-                alert('An unexpected error occured');
+                alert('Une erreur inconnue est survenue.');
                 return console.log(e);
             }
             window.WORKDAYS = items;

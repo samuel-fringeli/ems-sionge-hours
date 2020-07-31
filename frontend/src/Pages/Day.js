@@ -20,15 +20,8 @@ window.$ = $;
 global.jQuery = $;
 
 $.DataTable = require('datatables.net-bs');
-require('jszip');
-require('pdfmake/build/pdfmake.js');
-require('pdfmake/build/vfs_fonts.js');
 require('datatables.net-autofill');
 require('datatables.net-buttons-bs');
-require('datatables.net-buttons/js/buttons.colVis.js');
-require('datatables.net-buttons/js/buttons.flash.js');
-require('datatables.net-buttons/js/buttons.html5.js');
-require('datatables.net-buttons/js/buttons.print.js');
 require('datatables.net-colreorder');
 require('datatables.net-keytable');
 require('datatables.net-responsive-bs');
@@ -109,6 +102,15 @@ class DataTables extends React.Component {
         }).then((willDelete) => willDelete.value ? executeIfYes() : null);
     };
 
+    updateWorkTimeInWorkdays = attributes => {
+        let workTime = attributes.workTime.N;
+        let dayId = attributes.id.S;
+        if (window.WORKDAYS !== false && window.WORKDAYS.length > 0) {
+            let dayIndex = window.WORKDAYS.findIndex(item => item.id === dayId);
+            window.WORKDAYS[dayIndex].workTime = workTime;
+        }
+    };
+
     addHandler = () => {
         let newForm = {
             begin: this.state.currentData.begin._isAMomentObject ? this.state.currentData.begin.format('HH:mm') : '',
@@ -127,9 +129,9 @@ class DataTables extends React.Component {
             ...newForm, dayId: this.state.dayId
         }).then(({ data }) => {
             if ('error' in data.dbData) {
-                alert('An unexpected error occured');
+                alert('Une erreur inconnue est survenue.');
                 console.log(data.dbData.error);
-            }
+            } else this.updateWorkTimeInWorkdays(data.dbData.success.Attributes);
         });
     };
 
@@ -153,9 +155,9 @@ class DataTables extends React.Component {
             reason: window.CURRENT_DAY[newDataIndex].reason
         }).then(({ data }) => {
             if ('error' in data.dbData) {
-                alert('An unexpected error occured');
+                alert('Une erreur inconnue est survenue.');
                 console.log(data.dbData.error);
-            }
+            } else this.updateWorkTimeInWorkdays(data.dbData.success.Attributes);
         });
     };
 
@@ -188,9 +190,9 @@ class DataTables extends React.Component {
                 context.setState({ dayWorkTime: context.getDayWorkTime() });
                 utils.deleteData('/day')(currentId, context.state.dayId).then(({ data }) => {
                     if ('error' in data.dbData) {
-                        alert('An unexpected error occured');
+                        alert('Une erreur inconnue est survenue.');
                         console.log(data.dbData.error);
-                    }
+                    } else context.updateWorkTimeInWorkdays(data.dbData.success.Attributes);
                 });
             })();
             context.registerActions();
@@ -232,13 +234,14 @@ class DataTables extends React.Component {
     }
 
     calculateHoursDone() {
+        if (typeof(window.CURRENT_DAY) === 'undefined' || window.CURRENT_DAY === false) return;
         window.CURRENT_DAY = window.CURRENT_DAY
             .filter(item => !('disabled' in item && item.disabled === 'true'))
             .map(item => ({
-                ...item,
-                ...this.getHoursDone(item),
-            })
-        );
+                    ...item,
+                    ...this.getHoursDone(item),
+                })
+            );
     }
 
     async componentDidMountAsync() {
@@ -263,6 +266,8 @@ class DataTables extends React.Component {
                 this.props.history.push('/workdays');
             }
         }
+
+        if (typeof(window.CURRENT_DAY) === 'undefined' || window.CURRENT_DAY === false) window.CURRENT_DAY = [];
 
         await new Promise(resolve => this.setState({ pageLoaded: true, dayWorkTime: this.getDayWorkTime() }, resolve));
 
@@ -311,38 +316,12 @@ class DataTables extends React.Component {
 
         if (begin._isAMomentObject && end._isAMomentObject) {
             if (begin.diff(end, 'minutes') > 0) return true;
+            // prevent bug when user manually enters 24:00 in the field
+            if (begin.format('HH:mm') !== '00:00' && end.format('HH:mm') === '00:00') return true;
         }
 
         return false;
-    }; /*
-        !(
-            (!(
-                (this.state.currentData.begin === ''
-                    || (this.state.currentData.begin._isAMomentObject
-                        && this.state.currentData.format() === 'Invalid date'))
-                && (this.state.currentData.end === ''
-                    || (this.state.currentData.end._isAMomentObject
-                        && this.state.currentData.end.format() === 'Invalid date'))
-                && this.state.currentData.reason === ''
-            )) && (
-                (this.state.currentData.begin === ''
-                    || this.state.currentData.begin._isAMomentObject
-                ) && (
-                    this.state.currentData.end === ''
-                    || this.state.currentData.end._isAMomentObject
-                ) && (
-                    (this.state.currentData.begin === ''
-                        || (this.state.currentData.begin._isAMomentObject
-                            && this.state.currentData.format() === 'Invalid date'))
-                    && (this.state.currentData.end === ''
-                        || (this.state.currentData.end._isAMomentObject
-                            && this.state.currentData.end.format() === 'Invalid date'))
-                    || (
-                        this.state.currentData.begin.diff(this.state.currentData.end) <= 0
-                    )
-                )
-            )
-        );*/
+    };
 
     componentDidMount() {
         this.componentDidMountAsync();
@@ -356,7 +335,7 @@ class DataTables extends React.Component {
             <Aux>
                 <Row>
                     <Col>
-                        <MainCard title={ utils.capitalizeFirstLetter(window.moment(this.state.dayId).format('dddd Do MMMM YYYY')) + ' (' + this.state.dayWorkTime + ' de travail)' } path="/day" isOption parentContext={this}>
+                        <MainCard title={ utils.capitalizeFirstLetter(window.moment(this.state.dayId).format('dddd Do MMMM YYYY')) + ' (' + this.state.dayWorkTime + ')' } path="/day" isOption parentContext={this}>
                             <Modal centered show={this.state.showEditModal}
                                    onHide={() => this.setState({ showEditModal: false })}>
                                 <Modal.Header closeButton>

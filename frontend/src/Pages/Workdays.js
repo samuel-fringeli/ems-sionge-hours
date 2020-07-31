@@ -19,15 +19,8 @@ window.$ = $;
 global.jQuery = $;
 
 $.DataTable = require('datatables.net-bs');
-require('jszip');
-require('pdfmake/build/pdfmake.js');
-require('pdfmake/build/vfs_fonts.js');
 require('datatables.net-autofill');
 require('datatables.net-buttons-bs');
-require('datatables.net-buttons/js/buttons.colVis.js');
-require('datatables.net-buttons/js/buttons.flash.js');
-require('datatables.net-buttons/js/buttons.html5.js');
-require('datatables.net-buttons/js/buttons.print.js');
 require('datatables.net-colreorder');
 require('datatables.net-keytable');
 require('datatables.net-responsive-bs');
@@ -75,7 +68,11 @@ class DataTables extends React.Component {
     state = {
         showAddModal: false,
         addContent: '', // window.moment() set by mainCard.js on + click
-        currentData: {}
+        currentData: {},
+        days7: 0,
+        days14: 0,
+        days30: 0,
+        days60: 0
     };
 
     deleteConfirmHandler = executeIfYes => () => {
@@ -108,7 +105,7 @@ class DataTables extends React.Component {
             data: newForm.data
         }).then(({ data }) => {
             if ('error' in data.dbData) {
-                alert('An unexpected error occured');
+                alert('Une erreur inconnue est survenue.');
                 console.log(data.dbData.error);
             }
         });
@@ -134,9 +131,10 @@ class DataTables extends React.Component {
                 let row = context.table.row($(this).parents('tr'));
                 row.remove().draw();
                 window.WORKDAYS.splice(rowIdx, 1);
+                context.getStats();
                 utils.deleteData('/workdays')(currentId).then(({ data }) => {
                     if ('error' in data.dbData) {
-                        alert('An unexpected error occured');
+                        alert('Une erreur inconnue est survenue.');
                         console.log(data.dbData.error);
                     }
                 });
@@ -146,7 +144,7 @@ class DataTables extends React.Component {
     };
 
     componentDidMount() {
-        $.fn.dataTable.moment('MMMM Do YYYY, hh:mm');
+        $.fn.dataTable.moment('dddd Do MMMM YYYY');
 
         this.table = $('#data-table-responsive').DataTable( {
             data: window.WORKDAYS,
@@ -154,6 +152,15 @@ class DataTables extends React.Component {
             language: window.DT_TRANSLATION,
             columns: [
                 { "data": "id", render: data => utils.capitalizeFirstLetter(moment(data).format('dddd Do MMMM YYYY')) },
+                { "data": "workTime", render: diff => {
+                    let minutes = diff % 60;
+                    let hours = (diff - minutes) / 60;
+                    minutes = Math.abs(minutes);
+                    hours = Math.abs(hours);
+                    let hoursStr = ('0' + hours).slice(-2);
+                    let minutesStr = ('0' + minutes).slice(-2);
+                    return hoursStr + ':' + minutesStr;
+                }},
                 { "data": "workdayActions", render: (data, type, row) =>
                     '<div class="actionsHtml">' +
                     '<span class="btn btn-sm btn-dark btn-details-form" id="details-' + row.id + '">' +
@@ -169,13 +176,62 @@ class DataTables extends React.Component {
         });
 
         this.registerActions();
+        this.getStats();
     }
+
+    getStats = () => {
+        let result = {
+            days7: 0,
+            days14: 0,
+            days30: 0,
+            days60: 0
+        };
+        if (window.WORKDAYS !== false && window.WORKDAYS.length > 0) {
+            let sortedWorkdays = window.WORKDAYS.sort((a, b) =>
+                window.moment(a.id, 'YYYY-MM-DD') > window.moment(b.id, 'YYYY-MM-DD') ? -1 : 1);
+            let today = window.moment().startOf('day');
+            for (let i = 0; i < sortedWorkdays.length; i++) {
+                let concernedDay = window.moment(sortedWorkdays[i].id, 'YYYY-MM-DD');
+                let diff = today.diff(concernedDay, 'days');
+
+                if (diff < 0) continue;
+                if (diff > 60) break;
+
+                result.days7 = Number(result.days7);
+                result.days14 = Number(result.days14);
+                result.days30 = Number(result.days30);
+                result.days60 = Number(result.days60);
+
+                if (diff <= 7) result.days7 += Number(sortedWorkdays[i].workTime);
+                if (diff <= 14) result.days14 += Number(sortedWorkdays[i].workTime);
+                if (diff <= 30) result.days30 += Number(sortedWorkdays[i].workTime);
+                if (diff <= 60) result.days60 += Number(sortedWorkdays[i].workTime);
+            }
+        }
+        ['days7', 'days14', 'days30', 'days60'].forEach(dayEntry => {
+            let diff = result[dayEntry];
+            let minutes = diff % 60;
+            let hours = (diff - minutes) / 60;
+            minutes = Math.abs(minutes);
+            hours = Math.abs(hours);
+            let hoursStr = ('0' + hours).slice(-2);
+            let minutesStr = ('0' + minutes).slice(-2);
+            result[dayEntry] = hoursStr + ':' + minutesStr;
+        });
+        this.setState(result);
+    };
 
     render() {
         return (
             <Aux>
                 <Row>
                     <Col>
+                        <MainCard title="Statistiques des heures effectuées" isOption>
+                            <div>7 derniers jours : { this.state.days7 }</div>
+                            <div>14 derniers jours : { this.state.days14 }</div>
+                            <div>30 derniers jours : { this.state.days30 }</div>
+                            <div>60 derniers jours : { this.state.days60 }</div>
+                        </MainCard>
                         <MainCard title="Jours de travail" path="/workdays" isOption parentContext={this}>
                             <Modal centered show={this.state.showAddModal}
                                    onHide={() => this.setState({ showAddModal: false })}>
@@ -197,6 +253,7 @@ class DataTables extends React.Component {
                                 <thead>
                                 <tr>
                                     <th>Date du jour de travail</th>
+                                    <th>Heures effectuées</th>
                                     <th>Actions</th>
                                 </tr>
                                 </thead>
