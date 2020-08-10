@@ -122,7 +122,7 @@ class SignIn2 extends React.Component {
                                     { this.state.passwordEmpty ? (
                                         <div className="invalid-feedback">Ce champs est requis.</div>
                                     ): this.state.passwordError ? (
-                                        <div className="invalid-feedback">Your password is incorrect</div>
+                                        <div className="invalid-feedback">Votre mot de passe est invalide.</div>
                                     ):null }
                                 </div>
                                 {/*<div className="form-group text-left mt-2">

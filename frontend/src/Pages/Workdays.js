@@ -69,6 +69,8 @@ class DataTables extends React.Component {
         showAddModal: false,
         addContent: '', // window.moment() set by mainCard.js on + click
         currentData: {},
+        weekDiff: '00:00',
+        daysW: 0,
         days7: 0,
         days14: 0,
         days30: 0,
@@ -181,11 +183,15 @@ class DataTables extends React.Component {
 
     getStats = () => {
         let result = {
+            weekDiff: '00:00',
+            daysW: 0,
             days7: 0,
             days14: 0,
             days30: 0,
             days60: 0
         };
+        let currentDayW = Number(window.moment().format('d'));
+        let daysWDiff = { 0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 }[currentDayW];
         if (window.WORKDAYS !== false && window.WORKDAYS.length > 0) {
             let sortedWorkdays = window.WORKDAYS.sort((a, b) =>
                 window.moment(a.id, 'YYYY-MM-DD') > window.moment(b.id, 'YYYY-MM-DD') ? -1 : 1);
@@ -197,18 +203,20 @@ class DataTables extends React.Component {
                 if (diff < 0) continue;
                 if (diff > 60) break;
 
+                result.daysW = Number(result.daysW);
                 result.days7 = Number(result.days7);
                 result.days14 = Number(result.days14);
                 result.days30 = Number(result.days30);
                 result.days60 = Number(result.days60);
 
+                if (diff <= daysWDiff) result.daysW += Number(sortedWorkdays[i].workTime);
                 if (diff <= 7) result.days7 += Number(sortedWorkdays[i].workTime);
                 if (diff <= 14) result.days14 += Number(sortedWorkdays[i].workTime);
                 if (diff <= 30) result.days30 += Number(sortedWorkdays[i].workTime);
                 if (diff <= 60) result.days60 += Number(sortedWorkdays[i].workTime);
             }
         }
-        ['days7', 'days14', 'days30', 'days60'].forEach(dayEntry => {
+        ['daysW', 'days7', 'days14', 'days30', 'days60'].forEach(dayEntry => {
             let diff = result[dayEntry];
             let minutes = diff % 60;
             let hours = (diff - minutes) / 60;
@@ -218,15 +226,45 @@ class DataTables extends React.Component {
             let minutesStr = ('0' + minutes).slice(-2);
             result[dayEntry] = hoursStr + ':' + minutesStr;
         });
+
+        result.weekDiff = this.getWeekDiff(result.daysW);
         this.setState(result);
     };
 
+    getWeekDiff(daysW) {
+        let [hoursW, minutesW] = daysW.split(':').map(Number);
+
+        let workedMinutes = (hoursW * 60) + minutesW;
+        let weekMinutes = 42 * 60; // 42 hours per week
+        let diffMinutes = workedMinutes - weekMinutes;
+
+        let isDiffNegative = diffMinutes < 0;
+        diffMinutes = Math.abs(diffMinutes);
+
+        let minutes = diffMinutes % 60;
+        let hours = (diffMinutes - minutes) / 60;
+
+        let hoursStr = ('0' + hours).slice(-2);
+        let minutesStr = ('0' + minutes).slice(-2);
+
+        return (isDiffNegative ? '-':'') + (hoursStr + ':' + minutesStr);
+    }
+
     render() {
+        let isWeekDiffNegative = this.state.weekDiff.startsWith('-');
+
         return (
             <Aux>
                 <Row>
                     <Col>
                         <MainCard title="Statistiques des heures effectuées" isOption>
+                            <div>Cette semaine (depuis lundi) : { this.state.daysW }</div>
+                            <div className="mb-3">
+                                Heures restantes pour cette semaine :&nbsp;
+                                <span className={(isWeekDiffNegative ? 'text-danger':'text-success')}>
+                                    { this.state.weekDiff }
+                                </span>
+                            </div>
                             <div>7 derniers jours : { this.state.days7 }</div>
                             <div>14 derniers jours : { this.state.days14 }</div>
                             <div>30 derniers jours : { this.state.days30 }</div>
