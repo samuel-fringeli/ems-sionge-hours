@@ -260,7 +260,7 @@ class DataTables extends React.Component {
     exportHandler = () => {
         this.setState({
             exportingPDF: true
-        }, () => { console.log(this.state )});
+        });
     };
 
     convertHTMLtoPDF = (html, callback) => {
@@ -312,7 +312,7 @@ class DataTables extends React.Component {
                             <Modal centered show={this.state.showExportModal}
                                    onHide={() => this.setState({ showExportModal: false })}>
                                 <Modal.Header closeButton>
-                                    <Modal.Title as="h5">Exporter en PDF</Modal.Title>
+                                    <Modal.Title as="h5">Exporter le fichier PDF</Modal.Title>
                                 </Modal.Header>
                                 <Modal.Body>
                                     <Row>
@@ -353,7 +353,7 @@ class DataTables extends React.Component {
                                 <Modal.Footer>
                                     <Button variant="primary" onClick={this.exportHandler}
                                             disabled={this.state.exportingPDF}>
-                                        Exporter fichier PDF
+                                        Exporter le fichier PDF
                                     </Button>
                                 </Modal.Footer>
                             </Modal>
