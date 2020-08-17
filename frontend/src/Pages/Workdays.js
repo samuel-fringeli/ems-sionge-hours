@@ -1,7 +1,8 @@
 import React from 'react';
-import {Row, Col, Card, Table, Modal, Button} from 'react-bootstrap';
+import {Spinner, Row, Col, Card, Table, Modal, Button} from 'react-bootstrap';
 import MainCard from '../App/components/MainCard';
 import { withRouter } from 'react-router';
+import axios from "axios";
 
 import Aux from '../hoc/_Aux';
 import $ from 'jquery';
@@ -10,9 +11,11 @@ import withReactContent from "sweetalert2-react-content";
 import utils from "../utils";
 import Datetime from 'react-datetime';
 import moment from 'moment'
-import 'moment/locale/fr'; // without this line it didn't work
+import 'moment/locale/fr';
+import Export from "./Export"; // without this line it didn't work
 moment.locale('fr');
 window.moment = moment;
+window.CURRENT_YEAR = (new Date()).getFullYear();
 
 window.jQuery = $;
 window.$ = $;
@@ -74,7 +77,11 @@ class DataTables extends React.Component {
         days7: 0,
         days14: 0,
         days30: 0,
-        days60: 0
+        days60: 0,
+        exportMonth: (new Date()).getMonth() + 1,
+        exportYear: window.CURRENT_YEAR,
+        exportingPDF: false,
+        pdfLink: ''
     };
 
     deleteConfirmHandler = executeIfYes => () => {
@@ -159,7 +166,7 @@ class DataTables extends React.Component {
                     let hours = (diff - minutes) / 60;
                     minutes = Math.abs(minutes);
                     hours = Math.abs(hours);
-                    let hoursStr = ('0' + hours).slice(-2);
+                    let hoursStr = hours <= 10 ? ('0' + hours).slice(-2) : ('' + hours);
                     let minutesStr = ('0' + minutes).slice(-2);
                     return hoursStr + ':' + minutesStr;
                 }},
@@ -222,7 +229,7 @@ class DataTables extends React.Component {
             let hours = (diff - minutes) / 60;
             minutes = Math.abs(minutes);
             hours = Math.abs(hours);
-            let hoursStr = ('0' + hours).slice(-2);
+            let hoursStr = hours <= 10 ? ('0' + hours).slice(-2) : ('' + hours);
             let minutesStr = ('0' + minutes).slice(-2);
             result[dayEntry] = hoursStr + ':' + minutesStr;
         });
@@ -244,10 +251,44 @@ class DataTables extends React.Component {
         let minutes = diffMinutes % 60;
         let hours = (diffMinutes - minutes) / 60;
 
-        let hoursStr = ('0' + hours).slice(-2);
+        let hoursStr = hours <= 10 ? ('0' + hours).slice(-2) : ('' + hours);
         let minutesStr = ('0' + minutes).slice(-2);
 
         return (isDiffNegative ? '-':'') + (hoursStr + ':' + minutesStr);
+    }
+
+    exportHandler = () => {
+        this.setState({
+            exportingPDF: true
+        }, () => { console.log(this.state )});
+    };
+
+    convertHTMLtoPDF = (html, callback) => {
+        axios.post('https://api.pdf.pyme.ch', {
+            content: utils.wrapHtml(html, utils.capitalizeFirstLetter(
+                window.moment(this.state.exportMonth + '_' + this.state.exportYear, 'M_YYYY').format('MMMM YYYY'))),
+            download: true }).then(({ data }) => {
+                if (data.result.error) {
+                    console.log(data.result.error);
+                    alert('Une erreur inconnue est survenue.');
+                } else {
+                    let link = document.createElement('a');
+                    link.style.display = 'none';
+                    link.href = data.result.success.url;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    this.setState({ exportingPDF: false });
+                    utils.notify.success({
+                        title: "Votre fichier PDF a été téléchargé avec succès.",
+                        stack: window.stackBottomRight,
+                        delay: 2500
+                    });
+                }
+        }).catch(err => {
+            console.log(err);
+            alert('Une erreur inconnue est survenue.');
+        })
     }
 
     render() {
@@ -257,7 +298,65 @@ class DataTables extends React.Component {
             <Aux>
                 <Row>
                     <Col>
-                        <MainCard title="Statistiques des heures effectuées" isOption>
+                        { this.state.exportingPDF &&
+                            <div className="d-none" id="export-result">
+                                <Export month={this.state.exportMonth} year={this.state.exportYear} onFinished={() => {
+                                    this.convertHTMLtoPDF(document.getElementById('export-result')
+                                        .innerHTML.replace('d-none', ''), () => {
+                                        this.setState({ exportingPDF: false });
+                                    });
+                                }}/>
+                            </div>
+                        }
+                        <MainCard title="Statistiques des heures effectuées" path="/export" isOption parentContext={this}>
+                            <Modal centered show={this.state.showExportModal}
+                                   onHide={() => this.setState({ showExportModal: false })}>
+                                <Modal.Header closeButton>
+                                    <Modal.Title as="h5">Exporter en PDF</Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                    <Row>
+                                        <Col xs={6}>
+                                            <select disabled={this.state.exportingPDF} className="form-control" defaultValue={this.state.exportMonth}
+                                                    onChange={(event) => {
+                                                        this.setState({
+                                                            exportMonth: Number(event.target.value)
+                                                        }
+                                                    )}
+                                            }>
+                                                { Array(12).fill('').map((item, index) =>
+                                                    window.moment(index + 1, 'M').format('MMMM'))
+                                                    .map((item, index) => (
+                                                        <option key={'opt_' + index} value={index + 1}>
+                                                            { utils.capitalizeFirstLetter(item) }
+                                                        </option>
+                                                    )
+                                                )}
+                                            </select>
+                                        </Col>
+                                        <Col xs={6}>
+                                            <select disabled={this.state.exportingPDF} className="form-control" defaultValue={this.state.exportYear} onChange={(event) => {
+                                                this.setState({ exportYear: Number(event.target.value) });
+                                            }}>
+                                                {[window.CURRENT_YEAR - 1, window.CURRENT_YEAR, window.CURRENT_YEAR + 1].map((item => (
+                                                    <option key={item} value={item}>
+                                                        {item}
+                                                    </option>
+                                                )))}
+                                            </select>
+                                        </Col>
+                                    </Row>
+                                    { this.state.exportingPDF && <div className="text-center mt-4">
+                                        <Spinner animation="border" variant="primary" />
+                                    </div>}
+                                </Modal.Body>
+                                <Modal.Footer>
+                                    <Button variant="primary" onClick={this.exportHandler}
+                                            disabled={this.state.exportingPDF}>
+                                        Exporter fichier PDF
+                                    </Button>
+                                </Modal.Footer>
+                            </Modal>
                             <div>Cette semaine (depuis lundi) : { this.state.daysW }</div>
                             <div className="mb-3">
                                 Heures restantes pour cette semaine :&nbsp;

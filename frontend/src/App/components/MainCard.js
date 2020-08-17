@@ -34,11 +34,13 @@ class MainCard extends Component {
                                                 end: '',
                                                 reason: ''
                                             }});
+                                        } else if (this.props.path === '/export') {
+                                            this.props.parentContext.setState({ showExportModal: true });
                                         } else {
                                             this.props.parentContext.setState({ showAddModal: true, addContent: window.moment() });
                                         }
                                     }}>
-                                <i className="feather icon-plus"/>
+                                <i className={'feather ' + (this.props.path === '/export' ? 'icon-external-link':'icon-plus')}/>
                             </Button>
                         ):null}
                         <Dropdown.Toggle id="dropdown-basic" className="btn-icon icon-card-expand d-none">

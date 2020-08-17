@@ -215,28 +215,9 @@ class DataTables extends React.Component {
         let hours = (diff - minutes) / 60;
         minutes = Math.abs(minutes);
         hours = Math.abs(hours);
-        let hoursStr = ('0' + hours).slice(-2);
+        let hoursStr = hours <= 10 ? ('0' + hours).slice(-2) : ('' + hours);
         let minutesStr = ('0' + minutes).slice(-2);
         return hoursStr + ':' + minutesStr;
-    }
-
-    getHoursDone(item) {
-        let begin = moment(item.begin, 'HH:mm');
-        let end = moment(item.end, 'HH:mm');
-        if (begin.format() === "Invalid date" || end.format() === "Invalid date") {
-            return { hoursDone: '00:00', minDone: 0 };
-        }
-        let diff = begin.diff(end, 'minutes');
-        let minutes = diff % 60;
-        let hours = (diff - minutes) / 60;
-        minutes = Math.abs(minutes);
-        hours = Math.abs(hours);
-        let hoursStr = ('0' + hours).slice(-2);
-        let minutesStr = ('0' + minutes).slice(-2);
-        return {
-            hoursDone: hoursStr + ':' + minutesStr,
-            minDone: Math.abs(diff)
-        };
     }
 
     calculateHoursDone() {
@@ -245,7 +226,7 @@ class DataTables extends React.Component {
             .filter(item => !('disabled' in item && item.disabled === 'true'))
             .map(item => ({
                     ...item,
-                    ...this.getHoursDone(item),
+                    ...utils.getHoursDone(item),
                 })
             );
     }

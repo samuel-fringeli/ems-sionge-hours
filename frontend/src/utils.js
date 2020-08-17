@@ -142,6 +142,44 @@ export default {
         });
     },
 
+    getHoursDone: item => {
+        let begin = window.moment(item.begin, 'HH:mm');
+        let end = window.moment(item.end, 'HH:mm');
+        if (begin.format() === "Invalid date" || end.format() === "Invalid date") {
+            return { hoursDone: '00:00', minDone: 0 };
+        }
+        let diff = begin.diff(end, 'minutes');
+        let minutes = diff % 60;
+        let hours = (diff - minutes) / 60;
+        minutes = Math.abs(minutes);
+        hours = Math.abs(hours);
+        let hoursStr = hours <= 10 ? ('0' + hours).slice(-2) : ('' + hours);
+        let minutesStr = ('0' + minutes).slice(-2);
+        return {
+            hoursDone: hoursStr + ':' + minutesStr,
+            minDone: Math.abs(diff)
+        };
+    },
+
     encodeStr: rawStr => rawStr.replace(/[\u00A0-\u9999<>\&]/gim, i => ('&#' + i.charCodeAt(0) + ';')),
-    decodeStr: encodedStr => window.jQuery("<div/>").html(encodedStr).text()
+    decodeStr: encodedStr => window.jQuery("<div/>").html(encodedStr).text(),
+
+    wrapHtml: (html, title) => {
+        return `
+        <!doctype html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+            <title>${title}</title>
+          </head>
+          <body>
+            ${html}
+            <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+          </body>
+        </html>`
+    }
 }

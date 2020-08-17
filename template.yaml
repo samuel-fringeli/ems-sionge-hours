@@ -139,3 +139,49 @@ Resources:
             Method: DELETE
             Auth:
               Authorizer: CognitoAuthorizer
+
+  ManageExportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Exports data about work month
+      CodeUri: main-api/
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Runtime: nodejs12.x
+      Handler: app.manageExport
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref WorkdaysTable
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            Path: /export
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+        Post:
+          Type: Api
+          Properties:
+            Path: /export
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        Put:
+          Type: Api
+          Properties:
+            Path: /export
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
+        Delete:
+          Type: Api
+          Properties:
+            Path: /export
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer

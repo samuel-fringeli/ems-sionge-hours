@@ -15,11 +15,11 @@ exports.cognitoPreSignUp = (event, context, callback) => {
 // manage all
 function manage(relatedData, event) {
 
-    function getWorkdaysData(cognitoUser, elementId) {
+    function getWorkdaysData(cognitoUser) {
         return new Promise(resolve => {
             let params = {
                 TableName: process.env.TABLE_NAME,
-                IndexName: relatedData + '-user-index',
+                IndexName: 'workdays-user-index',
                 Select: 'ALL_PROJECTED_ATTRIBUTES',
                 ExpressionAttributeValues: {
                     ':cognitoUser': cognitoUser,
@@ -195,6 +195,34 @@ function manage(relatedData, event) {
         });
     }
 
+    function getExportData(cognitoUser, body) {
+        return new Promise(async resolve => {
+            let workdaysData = await getWorkdaysData(cognitoUser);
+            if (workdaysData.error) return resolve(workdaysData);
+
+            let workdaysId = workdaysData.success.Items.map(item => item.id)
+                .filter(item => item.startsWith(body.year + '-' + (('0' + body.month).slice(-2))));
+            if (workdaysId.length === 0) return resolve({ success: 'no data' });
+
+            let params = {
+                RequestItems: {
+                    [process.env.TABLE_NAME]: {
+                        Keys: workdaysId.map(workdayId => ({
+                            id: { S: workdayId },
+                            cognitoUser: { S: cognitoUser }
+                        }))
+                    }
+                }
+            };
+            dbClient.batchGetItem(params, async (err, data) => {
+                if (err) resolve({ error: { err, params }});
+                else {
+                    resolve({ success: data });
+                }
+            });
+        });
+    }
+
     function getElementId(event) {
         let result = '';
         try {
@@ -222,7 +250,7 @@ function manage(relatedData, event) {
         let dbData;
         if (relatedData === 'workdays') {
             if (method === 'GET') {
-                dbData = await getWorkdaysData(cognitoUser['cognito:username'], elementId);
+                dbData = await getWorkdaysData(cognitoUser['cognito:username']);
             } else if (method === 'POST') {
                 if (action === 'add') {
                     dbData = await addWorkday(cognitoUser['cognito:username'], sentBody);
@@ -244,6 +272,11 @@ function manage(relatedData, event) {
                 else dbData = {};
             } else if (method === 'DELETE') {
                 dbData = await deleteDay(cognitoUser['cognito:username'], elementId, dayId);
+            }
+            else dbData = {};
+        } else if (relatedData === 'export') {
+            if (method === 'POST') {
+                dbData = await getExportData(cognitoUser['cognito:username'], sentBody);
             }
             else dbData = {};
         }
@@ -274,3 +307,4 @@ function manage(relatedData, event) {
 
 exports.manageWorkdays = manage('workdays');
 exports.manageDay = manage('day');
+exports.manageExport = manage('export');
