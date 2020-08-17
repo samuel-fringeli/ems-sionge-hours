@@ -98,7 +98,7 @@ class ChangePassword extends React.Component {
                                 <div className="col-md-12">
                                     <div className="card-body">
                                         <img src={logoDark} alt="" className="img-fluid mb-4" />
-                                        <h4 className="mb-4 f-w-400">Change your password</h4>
+                                        <h4 className="mb-4 f-w-400">Changement du mot de passe</h4>
                                         <div className="input-group mb-2">
                                             <input type="password" disabled={this.state.changingPassword}
                                                    className={'form-control' + (this.state.formVerification.currentPassword ? '':' is-invalid')}
@@ -106,7 +106,7 @@ class ChangePassword extends React.Component {
                                                    value={this.state.currentPassword}
                                                    placeholder="Mot de passe actuel"/>
                                             { this.state.formVerification.currentPassword ? null: (
-                                                <div className="invalid-feedback">Your password is invalid</div>
+                                                <div className="invalid-feedback">Votre mot de passe est invalide.</div>
                                             )}
                                         </div>
                                         <div className="input-group mb-2">

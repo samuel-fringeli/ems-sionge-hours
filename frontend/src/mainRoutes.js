@@ -24,8 +24,8 @@ const ProfileSettings = React.lazy(() => new Promise(async resolve => {
 const mainRoutes = [
     { path: '/auth/signup', exact: true, name: 'SignUp', component: SignUp2 },
     { path: '/auth/signin', exact: true, name: 'SignIn', component: SignIn2 },
-    { path: '/auth/change-password', exact: true, name: 'Change Password', component: ChangePassword },
-    { path: '/auth/profile-settings', exact: true, name: 'Profile Settings', component: ProfileSettings }
+    { path: '/auth/change-password', exact: true, name: 'Changer le mot de passe', component: ChangePassword },
+    { path: '/auth/profile-settings', exact: true, name: 'Paramètres de profil', component: ProfileSettings }
 ];
 
 export default mainRoutes;

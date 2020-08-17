@@ -114,7 +114,7 @@ class ProfileSettings extends React.Component {
                         <div className="card">
                             <div className="card-body text-center">
                                 <img src={logoDark} alt="" className="img-fluid mb-4" />
-                                <h4 className="mb-4 f-w-400">Profile Settings</h4>
+                                <h4 className="mb-4 f-w-400">Paramètres de profil</h4>
                                 <img src={avatar} className="img-radius mb-4 d-none" alt="User-Profile"/>
                                 <div className="input-group mb-3">
                                     <input type="text" disabled={this.state.modifyingProfile}
