@@ -1,4 +1,4 @@
-# ems-sionge-stats
+# ems-sionge-hours
 
 Samuel Fringeli
 
