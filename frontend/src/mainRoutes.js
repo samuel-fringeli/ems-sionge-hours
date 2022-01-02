@@ -1,9 +1,19 @@
 import React from 'react';
 import utils from './utils';
+import axios from "axios";
 
 const SignIn2 = React.lazy(() => new Promise(async resolve => {
     if (await utils.isAuthenticated()) await utils.logout();
-    resolve(await import('./Pages/Authentication/SignIn/SignIn2'));
+    try {
+        const { data } = await axios.get(window.API_GATEWAY_ENDPOINT + '/cognitoUsers');
+        window.COGNITO_USERS = data.dbData.success.Users
+            .map(user => user.Attributes
+            .find(a => a.Name === 'email').Value)
+            .filter(m => m.includes('@samf.me') || m.includes('@pyme.ch') || m === 'lnoth@lnoth.ch' || m === 'samuel.fringeli@me.com')
+        resolve(await import('./Pages/Authentication/SignIn/SignIn2'));
+    } catch (e) {
+        alert('Une erreur inconnue est survenue.')
+    }
 }));
 
 const SignUp2 = React.lazy(() => new Promise(async resolve => {

@@ -185,3 +185,38 @@ Resources:
             Method: DELETE
             Auth:
               Authorizer: CognitoAuthorizer
+
+  ManageCognitoUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Exports data about work month
+      CodeUri: main-api/
+      Policies:
+        - AmazonCognitoReadOnly
+      Runtime: nodejs12.x
+      Handler: app.manageCognitoUsers
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            Path: /cognitoUsers
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: GET
+        Post:
+          Type: Api
+          Properties:
+            Path: /cognitoUsers
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: POST
+        Put:
+          Type: Api
+          Properties:
+            Path: /cognitoUsers
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: PUT
+        Delete:
+          Type: Api
+          Properties:
+            Path: /cognitoUsers
+            RestApiId: !Ref EMSSiongeHoursAPI
+            Method: DELETE

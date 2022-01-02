@@ -5,6 +5,7 @@ AWS.config.update({
 
 let dbClient = new AWS.DynamoDB();
 let docClient = new AWS.DynamoDB.DocumentClient();
+const cognitoClient = new AWS.CognitoIdentityServiceProvider();
 
 // don't verify email when sign up
 exports.cognitoPreSignUp = (event, context, callback) => {
@@ -240,7 +241,7 @@ function manage(relatedData, event) {
     }
 
     return async function(event) {
-        let cognitoUser = event.requestContext.authorizer.claims;
+        let cognitoUser = relatedData !== 'cognitoUsers' ? event.requestContext.authorizer.claims : {};
         let method = event.httpMethod;
         let sentBody = (method === 'GET' || method === 'DELETE') ? {} : JSON.parse(event.body);
         let elementId = getElementId(event);
@@ -279,6 +280,17 @@ function manage(relatedData, event) {
                 dbData = await getExportData(cognitoUser['cognito:username'], sentBody);
             }
             else dbData = {};
+        } else if (relatedData === 'cognitoUsers') {
+            if (method === 'GET') {
+                dbData = await new Promise(resolve => {
+                    cognitoClient.listUsers({
+                        UserPoolId: 'eu-central-1_eGxOYTjJT'
+                    }, (err, data) => {
+                        if (err) resolve({ error: err });
+                        else resolve({ success: data });
+                    });
+                });
+            } else dbData = {};
         }
         else dbData = {};
 
@@ -308,3 +320,4 @@ function manage(relatedData, event) {
 exports.manageWorkdays = manage('workdays');
 exports.manageDay = manage('day');
 exports.manageExport = manage('export');
+exports.manageCognitoUsers = manage('cognitoUsers');

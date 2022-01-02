@@ -4,7 +4,6 @@ import windowSize from 'react-window-size';
 
 import Aux from "../../hoc/_Aux";
 import DEMO from "../../store/constant";
-import utils from "../../utils";
 
 class MainCard extends Component {
     state = {

@@ -2,6 +2,7 @@ import React from 'react';
 import {NavLink} from 'react-router-dom';
 import utils from '../../../utils';
 import { withRouter } from 'react-router';
+import Select from 'react-select';
 
 import './../../../assets/scss/style.scss';
 import Aux from "../../../hoc/_Aux";
@@ -10,9 +11,17 @@ import Breadcrumb from "../../../App/layout/AdminLayout/Breadcrumb";
 import authLogo from '../../../assets/images/auth/auth-logo.png';
 import authLogoDark from '../../../assets/images/auth/auth-logo-dark.png';
 
+const loginOptions = window.COGNITO_USERS.map(u => ({
+    value: u,
+    label: u.replace(/@samf\.me$/, '')
+        .replace(/@pyme\.ch$/, '')
+        .replace('samuel.fringeli@me.com', 'samuel')
+        .replace('lnoth@lnoth.ch', 'léonard')
+}));
+
 class SignIn2 extends React.Component {
     state = {
-        email: '',
+        email: loginOptions[0].value,
         password: '',
         emailError: false,
         passwordError: false,
@@ -101,6 +110,18 @@ class SignIn2 extends React.Component {
                                 <img src={authLogoDark} alt="" className="img-fluid mb-4 d-block d-xl-none d-lg-none" />
                                 <h3 className="mb-4 f-w-400">Se connecter</h3>
                                 <div className="input-group mb-3">
+                                    <Select
+                                        className="basic-single"
+                                        classNamePrefix="select"
+                                        defaultValue={loginOptions[0]}
+                                        name="color"
+                                        options={loginOptions}
+                                        onChange={({ value }) => {
+                                            this.setState({ email: value })
+                                        }}
+                                    />
+                                </div>
+                                <div className="input-group mb-3 d-none">
                                     <input type="email" disabled={this.state.signingIn}
                                            className={'form-control' + (this.state.emailError || this.state.emailEmpty ? ' is-invalid':'')}
                                            placeholder="Adresse email"
@@ -109,7 +130,7 @@ class SignIn2 extends React.Component {
                                     { this.state.emailEmpty ? (
                                         <div className="invalid-feedback">Ce champs est requis.</div>
                                     ): this.state.emailError ? (
-                                        <div className="invalid-feedback">This email is not assigned to an account</div>
+                                        <div className="invalid-feedback">Cet email n'est pas associé à un compte</div>
                                     ):null }
                                 </div>
                                 <div className="input-group mb-4">
