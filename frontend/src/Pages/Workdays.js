@@ -265,8 +265,12 @@ class DataTables extends React.Component {
 
     convertHTMLtoPDF = (html, callback) => {
         axios.post('https://api.pdf.pyme.ch', {
-            content: utils.wrapHtml(html, utils.capitalizeFirstLetter(
-                window.moment(this.state.exportMonth + '_' + this.state.exportYear, 'M_YYYY').format('MMMM YYYY'))),
+            content: utils.wrapHtml(html, (
+                (this.state.exportMonth === 'all' || !this.state.exportMonth) ? this.state.exportYear :
+                    utils.capitalizeFirstLetter(
+                        window.moment(this.state.exportMonth + '_' + this.state.exportYear, 'M_YYYY').format('MMMM YYYY'))
+                )
+            ),
             download: true }).then(({ data }) => {
                 if (data.result.error) {
                     console.log(data.result.error);
@@ -324,14 +328,18 @@ class DataTables extends React.Component {
                                                         }
                                                     )}
                                             }>
-                                                { Array(12).fill('').map((item, index) =>
+                                                { [(
+                                                    <option key="opt_all" value="all">
+                                                        Toute l'année
+                                                    </option>
+                                                ), ...Array(12).fill('').map((item, index) =>
                                                     window.moment(index + 1, 'M').format('MMMM'))
                                                     .map((item, index) => (
                                                         <option key={'opt_' + index} value={index + 1}>
                                                             { utils.capitalizeFirstLetter(item) }
                                                         </option>
-                                                    )
-                                                )}
+                                                    ))]
+                                                }
                                             </select>
                                         </Col>
                                         <Col xs={6}>

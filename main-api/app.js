@@ -201,8 +201,11 @@ function manage(relatedData, event) {
             let workdaysData = await getWorkdaysData(cognitoUser);
             if (workdaysData.error) return resolve(workdaysData);
 
-            let workdaysId = workdaysData.success.Items.map(item => item.id)
-                .filter(item => item.startsWith(body.year + '-' + (('0' + body.month).slice(-2))));
+            let workdaysId = !(body.month === 'all' || !body.month) ?
+                workdaysData.success.Items.map(item => item.id)
+                    .filter(item => item.startsWith(body.year + '-' + (('0' + body.month).slice(-2)))) :
+                workdaysData.success.Items.map(item => item.id)
+                    .filter(item => item.startsWith(body.year));
             if (workdaysId.length === 0) return resolve({ success: 'no data' });
 
             let params = {

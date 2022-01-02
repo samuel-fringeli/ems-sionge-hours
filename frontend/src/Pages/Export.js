@@ -83,7 +83,7 @@ class Export extends React.Component {
             <div>
                 <div className="text-right">{ utils.getFirstname() + ' ' + utils.getLastname() }</div>
                 <h4 className="text-center mb-3">
-                    {utils.capitalizeFirstLetter(
+                    {(this.state.exportMonth === 'all' || !this.state.exportMonth) ? this.state.exportYear : utils.capitalizeFirstLetter(
                         window.moment(this.state.exportMonth + '_' + this.state.exportYear, 'M_YYYY').format('MMMM YYYY'))}
                 </h4>
                 <Table bordered>
@@ -98,12 +98,18 @@ class Export extends React.Component {
                     </thead>
                     { this.getTableContent() }
                 </Table>
-                <div className="text-center">
-                    Nombre total d'heures effectuées pour le mois {(['', 'de ', 'de ', 'de ', 'd\'', 'de ', 'de ',
-                    'de ', 'd\'', 'de ', 'd\'', 'de ', 'de '])[this.state.exportMonth]}
-                    {window.moment(this.state.exportMonth + '_' + this.state.exportYear, 'M_YYYY')
-                    .format('MMMM YYYY')} : <strong>{this.state.totalHours}</strong>
-                </div>
+                {(this.state.exportMonth === 'all' || !this.state.exportMonth) ? (
+                    <div className="text-center">
+                        Nombre total d'heures effectuées pour l'année {this.state.exportYear} : <strong>{this.state.totalHours}</strong>
+                    </div>
+                ):(
+                    <div className="text-center">
+                        Nombre total d'heures effectuées pour le mois {(['', 'de ', 'de ', 'de ', 'd\'', 'de ', 'de ',
+                        'de ', 'd\'', 'de ', 'd\'', 'de ', 'de '])[this.state.exportMonth]}
+                        {window.moment(this.state.exportMonth + '_' + this.state.exportYear, 'M_YYYY')
+                            .format('MMMM YYYY')} : <strong>{this.state.totalHours}</strong>
+                    </div>
+                )}
             </div>
         );
     }
