@@ -73,11 +73,15 @@ class DataTables extends React.Component {
         addContent: '', // window.moment() set by mainCard.js on + click
         currentData: {},
         weekDiff: '00:00',
-        daysW: 0,
-        days7: 0,
-        days14: 0,
-        days30: 0,
-        days60: 0,
+        daysW: 0, priceW: 0,
+        days7: 0, price7: 0,
+        days14: 0, price14: 0,
+        days30: 0, price30: 0,
+        days60: 0, price60: 0,
+        days90: 0, price90: 0,
+        days180: 0, price180: 0,
+        days365: 0, price365: 0,
+        days3650: 0, price3650: 0,
         exportMonth: (new Date()).getMonth() + 1,
         exportYear: window.CURRENT_YEAR,
         exportingPDF: false,
@@ -191,11 +195,15 @@ class DataTables extends React.Component {
     getStats = () => {
         let result = {
             weekDiff: '00:00',
-            daysW: 0,
-            days7: 0,
-            days14: 0,
-            days30: 0,
-            days60: 0
+            daysW: 0, priceW: 0,
+            days7: 0, price7: 0,
+            days14: 0, price14: 0,
+            days30: 0, price30: 0,
+            days60: 0, price60: 0,
+            days90: 0, price90: 0,
+            days180: 0, price180: 0,
+            days365: 0, price365: 0,
+            days3650: 0, price3650: 0
         };
         let currentDayW = Number(window.moment().format('d'));
         let daysWDiff = { 0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 }[currentDayW];
@@ -208,23 +216,32 @@ class DataTables extends React.Component {
                 let diff = today.diff(concernedDay, 'days');
 
                 if (diff < 0) continue;
-                if (diff > 60) break;
+                if (diff > 3650) break;
 
                 result.daysW = Number(result.daysW);
                 result.days7 = Number(result.days7);
                 result.days14 = Number(result.days14);
                 result.days30 = Number(result.days30);
                 result.days60 = Number(result.days60);
+                result.days90 = Number(result.days90);
+                result.days180 = Number(result.days180);
+                result.days365 = Number(result.days365);
+                result.days3650 = Number(result.days3650);
 
                 if (diff <= daysWDiff) result.daysW += Number(sortedWorkdays[i].workTime);
                 if (diff <= 7) result.days7 += Number(sortedWorkdays[i].workTime);
                 if (diff <= 14) result.days14 += Number(sortedWorkdays[i].workTime);
                 if (diff <= 30) result.days30 += Number(sortedWorkdays[i].workTime);
                 if (diff <= 60) result.days60 += Number(sortedWorkdays[i].workTime);
+                if (diff <= 90) result.days90 += Number(sortedWorkdays[i].workTime);
+                if (diff <= 180) result.days180 += Number(sortedWorkdays[i].workTime);
+                if (diff <= 365) result.days365 += Number(sortedWorkdays[i].workTime);
+                if (diff <= 3650) result.days3650 += Number(sortedWorkdays[i].workTime);
             }
         }
-        ['daysW', 'days7', 'days14', 'days30', 'days60'].forEach(dayEntry => {
+        ['daysW', 'days7', 'days14', 'days30', 'days60', 'days90', 'days180', 'days365', 'days3650'].forEach(dayEntry => {
             let diff = result[dayEntry];
+            result[dayEntry.replace('days', 'price')] = diff * (50/60) // 50 CHF per hour
             let minutes = diff % 60;
             let hours = (diff - minutes) / 60;
             minutes = Math.abs(minutes);
@@ -346,7 +363,12 @@ class DataTables extends React.Component {
                                             <select disabled={this.state.exportingPDF} className="form-control" defaultValue={this.state.exportYear} onChange={(event) => {
                                                 this.setState({ exportYear: Number(event.target.value) });
                                             }}>
-                                                {[window.CURRENT_YEAR - 1, window.CURRENT_YEAR, window.CURRENT_YEAR + 1].map((item => (
+                                                {[window.CURRENT_YEAR - 3,
+                                                  window.CURRENT_YEAR - 2,
+                                                  window.CURRENT_YEAR - 1,
+                                                  window.CURRENT_YEAR,
+                                                  window.CURRENT_YEAR + 1
+                                                ].map((item => (
                                                     <option key={item} value={item}>
                                                         {item}
                                                     </option>
@@ -365,17 +387,21 @@ class DataTables extends React.Component {
                                     </Button>
                                 </Modal.Footer>
                             </Modal>
-                            <div>Cette semaine (depuis lundi) : { this.state.daysW }</div>
-                            <div className="mb-3">
+                            <div className="mb-3">Cette semaine (depuis lundi) : { this.state.daysW }</div>
+                            <div className="mb-3 d-none">
                                 Heures restantes pour cette semaine :&nbsp;
                                 <span className={(isWeekDiffNegative ? 'text-danger':'text-success')}>
                                     { this.state.weekDiff }
                                 </span>
                             </div>
-                            <div>7 derniers jours : { this.state.days7 }</div>
-                            <div>14 derniers jours : { this.state.days14 }</div>
-                            <div>30 derniers jours : { this.state.days30 }</div>
-                            <div>60 derniers jours : { this.state.days60 }</div>
+                            <div>7 derniers jours : { this.state.days7 } ({ this.state.price7.toFixed(2) } CHF)</div>
+                            <div>14 derniers jours : { this.state.days14 } ({ this.state.price14.toFixed(2) } CHF)</div>
+                            <div>30 derniers jours : { this.state.days30 } ({ this.state.price30.toFixed(2) } CHF)</div>
+                            <div>60 derniers jours : { this.state.days60 } ({ this.state.price60.toFixed(2) } CHF)</div>
+                            <div>90 derniers jours : { this.state.days90 } ({ this.state.price90.toFixed(2) } CHF)</div>
+                            <div>180 derniers jours : { this.state.days180 } ({ this.state.price180.toFixed(2) } CHF)</div>
+                            <div>365 derniers jours : { this.state.days365 } ({ this.state.price365.toFixed(2) } CHF)</div>
+                            <div className="mt-3">10 dernières années : { this.state.days3650 } ({ this.state.price3650.toFixed(2) } CHF)</div>
                         </MainCard>
                         <MainCard title="Jours de travail" path="/workdays" isOption parentContext={this}>
                             <Modal centered show={this.state.showAddModal}
