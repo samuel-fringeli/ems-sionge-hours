@@ -17,15 +17,28 @@ class ProfileSettings extends React.Component {
         email: utils.getEmail(),
         firstname: utils.getFirstname(),
         lastname: utils.getLastname(),
+        hourRate: 50, // Default to 50 CHF
         formVerification: {
             firstname: true,
             lastname: true,
             email: true,
-            nonExistingEmail: true
+            nonExistingEmail: true,
+            hourRate: true
         }
     };
 
     emailsExceptions = [];
+
+    componentDidMount() {
+        Auth.currentAuthenticatedUser()
+            .then(user => {
+                const hourRate = user.attributes['custom:hourRate'];
+                if (hourRate) {
+                    this.setState({ hourRate: parseFloat(hourRate) });
+                }
+            })
+            .catch(err => console.log(err));
+    }
 
     modify = element => event => {
         let toChange = {};
@@ -42,7 +55,8 @@ class ProfileSettings extends React.Component {
             firstname: true,
             lastname: true,
             email: true,
-            nonExistingEmail: true
+            nonExistingEmail: true,
+            hourRate: true
         };
         if (this.state.firstname === '') {
             toChange.firstname = false;
@@ -57,11 +71,15 @@ class ProfileSettings extends React.Component {
         if (this.emailsExceptions.includes(this.state.email)) {
             toChange.nonExistingEmail = false;
         }
+        // Validate hourRate (must be a valid number > 0)
+        if (isNaN(parseFloat(this.state.hourRate)) || parseFloat(this.state.hourRate) <= 0) {
+            toChange.hourRate = false;
+        }
         this.setState({
             ...this.state,
             formVerification: toChange
         });
-        return (toChange.firstname && toChange.lastname && toChange.email && toChange.nonExistingEmail);
+        return (toChange.firstname && toChange.lastname && toChange.email && toChange.nonExistingEmail && toChange.hourRate);
     };
 
     updateHandler = () => {
@@ -70,7 +88,8 @@ class ProfileSettings extends React.Component {
                 Auth.updateUserAttributes(Auth.user, {
                     'email': this.state.email,
                     'custom:firstname': this.state.firstname,
-                    'custom:lastname': this.state.lastname
+                    'custom:lastname': this.state.lastname,
+                    'custom:hourRate': this.state.hourRate.toString()
                 }).then(() => {
                     Auth.currentAuthenticatedUser({ bypassCache: true }).then(user => {
                         utils.notify.success({
@@ -117,7 +136,8 @@ class ProfileSettings extends React.Component {
                                 <h4 className="mb-4 f-w-400">Paramètres de profil</h4>
                                 <img src={avatar} className="img-radius mb-4 d-none" alt="User-Profile"/>
                                 <div className="input-group mb-3">
-                                    <input type="text" disabled={this.state.modifyingProfile}
+                                    <label htmlFor="firstname" className="w-100 text-left mb-1 font-weight-bold">Prénom</label>
+                                    <input type="text" id="firstname" disabled={this.state.modifyingProfile}
                                            className={'form-control' + (this.state.formVerification.firstname ? '':' is-invalid')}
                                            onChange={this.modify('firstname')}
                                            value={this.state.firstname}
@@ -127,7 +147,8 @@ class ProfileSettings extends React.Component {
                                     )}
                                 </div>
                                 <div className="input-group mb-3">
-                                    <input type="text" disabled={this.state.modifyingProfile}
+                                    <label htmlFor="lastname" className="w-100 text-left mb-1 font-weight-bold">Nom de famille</label>
+                                    <input type="text" id="lastname" disabled={this.state.modifyingProfile}
                                            className={'form-control' + (this.state.formVerification.lastname ? '':' is-invalid')}
                                            onChange={this.modify('lastname')}
                                            value={this.state.lastname}
@@ -137,7 +158,8 @@ class ProfileSettings extends React.Component {
                                     )}
                                 </div>
                                 <div className="input-group mb-3">
-                                    <input type="email" disabled={this.state.modifyingProfile}
+                                    <label htmlFor="email" className="w-100 text-left mb-1 font-weight-bold">Adresse email</label>
+                                    <input type="email" id="email" disabled={this.state.modifyingProfile}
                                            className={'form-control' + ((this.state.formVerification.email && this.state.formVerification.nonExistingEmail) ? '':' is-invalid')}
                                            onChange={this.modify('email')}
                                            onKeyDown={this.checkEnter}
@@ -147,6 +169,18 @@ class ProfileSettings extends React.Component {
                                         <div className="invalid-feedback text-left">Cet email est déjà utilisé.</div>
                                     )): (
                                         <div className="invalid-feedback text-left">Cet email est invalide.</div>
+                                    )}
+                                </div>
+                                <div className="input-group mb-3">
+                                    <label htmlFor="hourRate" className="w-100 text-left mb-1 font-weight-bold">Taux horaire (CHF)</label>
+                                    <input type="number" id="hourRate" step="0.01" disabled={this.state.modifyingProfile}
+                                           className={'form-control' + (this.state.formVerification.hourRate ? '':' is-invalid')}
+                                           onChange={this.modify('hourRate')}
+                                           onKeyDown={this.checkEnter}
+                                           value={this.state.hourRate}
+                                           placeholder="Taux horaire (CHF)"/>
+                                    { this.state.formVerification.hourRate ? null: (
+                                        <div className="invalid-feedback text-left">Veuillez entrer un taux horaire valide.</div>
                                     )}
                                 </div>
                                 <button className="btn btn-block btn-primary mb-4"

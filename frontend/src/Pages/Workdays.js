@@ -3,6 +3,7 @@ import {Spinner, Row, Col, Card, Table, Modal, Button} from 'react-bootstrap';
 import MainCard from '../App/components/MainCard';
 import { withRouter } from 'react-router';
 import axios from "axios";
+import {Auth} from 'aws-amplify';
 
 import Aux from '../hoc/_Aux';
 import $ from 'jquery';
@@ -85,7 +86,8 @@ class DataTables extends React.Component {
         exportMonth: (new Date()).getMonth() + 1,
         exportYear: window.CURRENT_YEAR,
         exportingPDF: false,
-        pdfLink: ''
+        pdfLink: '',
+        hourRate: 50 // Default hourly rate if not set in Cognito
     };
 
     deleteConfirmHandler = executeIfYes => () => {
@@ -157,6 +159,24 @@ class DataTables extends React.Component {
     };
 
     componentDidMount() {
+        // Fetch hourRate from Cognito
+        Auth.currentAuthenticatedUser()
+            .then(user => {
+                const hourRate = user.attributes['custom:hourRate'];
+                if (hourRate) {
+                    this.setState({ hourRate: parseFloat(hourRate) }, () => {
+                        // Get stats after hourRate is loaded
+                        this.getStats();
+                    });
+                } else {
+                    this.getStats();
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                this.getStats();
+            });
+
         $.fn.dataTable.moment('dddd Do MMMM YYYY');
 
         this.table = $('#data-table-responsive').DataTable( {
@@ -189,7 +209,6 @@ class DataTables extends React.Component {
         });
 
         this.registerActions();
-        this.getStats();
     }
 
     getStats = () => {
@@ -241,7 +260,9 @@ class DataTables extends React.Component {
         }
         ['daysW', 'days7', 'days14', 'days30', 'days60', 'days90', 'days180', 'days365', 'days3650'].forEach(dayEntry => {
             let diff = result[dayEntry];
-            result[dayEntry.replace('days', 'price')] = diff * (50/60) // 50 CHF per hour
+            
+            // Use the hourRate from state instead of hardcoded 50 CHF
+            result[dayEntry.replace('days', 'price')] = diff * (this.state.hourRate/60) // User's hourly rate in CHF
             let minutes = diff % 60;
             let hours = (diff - minutes) / 60;
             minutes = Math.abs(minutes);
@@ -394,14 +415,14 @@ class DataTables extends React.Component {
                                     { this.state.weekDiff }
                                 </span>
                             </div>
-                            <div>7 derniers jours : { this.state.days7 } ({ this.state.price7.toFixed(2) } CHF)</div>
-                            <div>14 derniers jours : { this.state.days14 } ({ this.state.price14.toFixed(2) } CHF)</div>
-                            <div>30 derniers jours : { this.state.days30 } ({ this.state.price30.toFixed(2) } CHF)</div>
-                            <div>60 derniers jours : { this.state.days60 } ({ this.state.price60.toFixed(2) } CHF)</div>
-                            <div>90 derniers jours : { this.state.days90 } ({ this.state.price90.toFixed(2) } CHF)</div>
-                            <div>180 derniers jours : { this.state.days180 } ({ this.state.price180.toFixed(2) } CHF)</div>
-                            <div>365 derniers jours : { this.state.days365 } ({ this.state.price365.toFixed(2) } CHF)</div>
-                            <div className="mt-3">10 dernières années : { this.state.days3650 } ({ this.state.price3650.toFixed(2) } CHF)</div>
+                            <div><strong>7 derniers jours :</strong> { this.state.days7 } (<strong>{ this.state.price7.toFixed(2) } CHF</strong> à { this.state.hourRate } CHF/h)</div>
+                            <div><strong>14 derniers jours :</strong> { this.state.days14 } (<strong>{ this.state.price14.toFixed(2) } CHF</strong> à { this.state.hourRate } CHF/h)</div>
+                            <div><strong>30 derniers jours :</strong> { this.state.days30 } (<strong>{ this.state.price30.toFixed(2) } CHF</strong> à { this.state.hourRate } CHF/h)</div>
+                            <div><strong>60 derniers jours :</strong> { this.state.days60 } (<strong>{ this.state.price60.toFixed(2) } CHF</strong> à { this.state.hourRate } CHF/h)</div>
+                            <div><strong>90 derniers jours :</strong> { this.state.days90 } (<strong>{ this.state.price90.toFixed(2) } CHF</strong> à { this.state.hourRate } CHF/h)</div>
+                            <div><strong>180 derniers jours :</strong> { this.state.days180 } (<strong>{ this.state.price180.toFixed(2) } CHF</strong> à { this.state.hourRate } CHF/h)</div>
+                            <div><strong>365 derniers jours :</strong> { this.state.days365 } (<strong>{ this.state.price365.toFixed(2) } CHF</strong> à { this.state.hourRate } CHF/h)</div>
+                            <div className="mt-3"><strong>10 dernières années</strong> : { this.state.days3650 } (<strong>{ this.state.price3650.toFixed(2) } CHF</strong> à { this.state.hourRate } CHF/h)</div>
                         </MainCard>
                         <MainCard title="Jours de travail" path="/workdays" isOption parentContext={this}>
                             <Modal centered show={this.state.showAddModal}
